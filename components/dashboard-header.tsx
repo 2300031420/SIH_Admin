@@ -7,12 +7,14 @@ import Link from "next/link"
 import { useLanguage } from "@/hooks/use-language"
 import { useTheme } from "next-themes"
 import { useState, useEffect } from "react"
+import { useRouter } from "next/navigation"
 
 export function DashboardHeader() {
   const { language, setLanguage, t } = useLanguage()
   const { theme, setTheme } = useTheme()
   const [mounted, setMounted] = useState(false)
   const [currentDate, setCurrentDate] = useState("")
+  const router = useRouter()
 
   useEffect(() => {
     setMounted(true)
@@ -34,6 +36,20 @@ export function DashboardHeader() {
 
   const toggleTheme = () => {
     setTheme(theme === "dark" ? "light" : "dark")
+  }
+
+  const handleLogout = () => {
+    try {
+      // Clear any stored auth/session data
+      if (typeof window !== "undefined") {
+        window.localStorage.clear()
+        window.sessionStorage.clear()
+      }
+    } catch (_) {
+      // ignore storage errors
+    }
+    // Navigate to login page
+    router.push("/")
   }
 
   if (!mounted) {
@@ -137,6 +153,7 @@ export function DashboardHeader() {
             <Button
               variant="ghost"
               size="sm"
+              onClick={handleLogout}
               className="hover:bg-destructive/10 text-destructive transition-all duration-200"
             >
               <LogOut className="w-4 h-4" />
