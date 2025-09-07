@@ -1,7 +1,7 @@
 import { AttendanceSummary } from "@/components/attendance-summary"
 import { StudentList } from "@/components/student-list"
 import { DashboardHeader } from "@/components/dashboard-header"
-import { ModernNavigation } from "@/components/modern-navigation"
+
 
 export default function DashboardPage() {
   return (
@@ -16,7 +16,7 @@ export default function DashboardPage() {
         </div>
 
         {/* Modern Navigation Tabs */}
-        <ModernNavigation />
+       
 
         {/* Today's Attendance Summary - Modern Cards */}
         <AttendanceSummary />
