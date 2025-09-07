@@ -58,7 +58,7 @@ export function ReportTable() {
         <div className="space-y-4 max-h-96 overflow-y-auto">
           {reportData.map((student, index) => (
             <div key={index} className="p-4 rounded-lg border border-border bg-muted/20 space-y-3">
-              <div className="flex items-center justify-between">
+              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
                 <div>
                   <p className="font-medium text-foreground">{student.studentName}</p>
                   <p className="text-sm text-muted-foreground">Roll No: {student.rollNumber}</p>
@@ -81,7 +81,7 @@ export function ReportTable() {
                 <Progress value={student.attendancePercentage} className="h-2" />
               </div>
 
-              <div className="grid grid-cols-3 gap-4 text-center">
+              <div className="grid grid-cols-3 gap-4 text-center text-sm">
                 <div>
                   <p className="text-sm text-muted-foreground">Total</p>
                   <p className="font-medium text-foreground">{student.totalDays}</p>

@@ -81,7 +81,7 @@ export function StudentList() {
           {filteredStudents.map((student, index) => (
             <div
               key={student.id}
-              className="flex items-center justify-between p-4 rounded-xl border border-border/50 hover:bg-accent/5 transition-all duration-200 hover:shadow-md animate-fade-in"
+              className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 p-4 rounded-xl border border-border/50 hover:bg-accent/5 transition-all duration-200 hover:shadow-md animate-fade-in"
               style={{ animationDelay: `${index * 50}ms` }}
             >
               <div className="flex items-center space-x-4">
@@ -106,8 +106,8 @@ export function StudentList() {
                 </div>
               </div>
 
-              <div className="flex items-center space-x-4">
-                <div className="text-right">
+              <div className="flex items-center sm:space-x-4 w-full sm:w-auto justify-between sm:justify-end">
+                <div className="text-left sm:text-right">
                   <p className="text-sm font-medium text-foreground">{t("time")}</p>
                   <p className="text-sm text-muted-foreground">{student.time}</p>
                 </div>

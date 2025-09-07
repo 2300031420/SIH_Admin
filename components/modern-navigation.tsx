@@ -79,7 +79,10 @@ export function ModernNavigation() {
   ]
 
   return (
-    <div className="flex space-x-1 bg-white/70 backdrop-blur-sm rounded-2xl p-2 shadow-lg border border-white/20">
+    <div
+      className="flex space-x-1 bg-white/70 backdrop-blur-sm rounded-2xl p-2 shadow-lg border border-white/20 overflow-x-auto no-scrollbar"
+      style={{ WebkitOverflowScrolling: "touch" }}
+    >
       {navItems.map((item) => {
         const Icon = item.icon
         return (
@@ -87,7 +90,7 @@ export function ModernNavigation() {
             key={item.name}
             href={item.href}
             className={`
-              flex items-center space-x-2 px-6 py-3 rounded-xl font-medium transition-all duration-200
+              flex items-center space-x-2 px-4 sm:px-6 py-2.5 sm:py-3 rounded-xl font-medium transition-all duration-200 whitespace-nowrap
               ${
                 item.active ? "bg-blue-600 text-white shadow-lg" : "text-gray-600 hover:text-gray-900 hover:bg-white/50"
               }
