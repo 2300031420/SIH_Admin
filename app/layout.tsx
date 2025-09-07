@@ -12,9 +12,16 @@ const geistSans = GeistSans.variable
 const geistMono = GeistMono.variable
 
 export const metadata: Metadata = {
-  title: "v0 App",
+  title: "TEACHER PORTAL",
   description: "Created with v0",
   generator: "v0.app",
+  icons: {
+    icon: [
+      { url: "/favicon.ico", sizes: "any" },
+      { url: "/favicon.png", type: "image/png" },
+    ],
+    apple: "/favicon.png",
+  },
 }
 
 export default function RootLayout({
