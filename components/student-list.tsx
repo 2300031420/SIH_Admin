@@ -23,14 +23,14 @@ export function StudentList() {
   const [searchTerm, setSearchTerm] = useState("")
   const [statusFilter, setStatusFilter] = useState<"all" | "present" | "absent">("all")
   const { t } = useLanguage()
-
+  const API_URL = process.env.NEXT_PUBLIC_API_URL;
   useEffect(() => {
     const fetchStudentsAndAttendance = async () => {
       try {
         const token = localStorage.getItem("token")
 
         // 1️⃣ Fetch teacher profile
-        const resTeacher = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/auth/me`, {
+        const resTeacher = await fetch(`${API_URL}/api/auth/me`, {
           headers: { Authorization: `Bearer ${token}` },
         })
         if (!resTeacher.ok) throw new Error("Failed to fetch teacher profile")
@@ -38,7 +38,7 @@ export function StudentList() {
         const teacherSchoolId = teacher.teacherSchoolId
 
         // 2️⃣ Fetch students assigned to this teacher
-        const resStudents = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/auth/students`, {
+        const resStudents = await fetch(`${API_URL}/api/auth/students`, {
           headers: { Authorization: `Bearer ${token}` },
         })
         if (!resStudents.ok) throw new Error("Failed to fetch students")
@@ -48,7 +48,7 @@ export function StudentList() {
         let attendanceData: any[] = []
         if (teacherSchoolId) {
           const resAttendance = await fetch(
-            `${process.env.NEXT_PUBLIC_API_URL}/api/attendance/today/${teacherSchoolId}`,
+            `${API_URL}/api/attendance/today/${teacherSchoolId}`,
             { headers: { Authorization: `Bearer ${token}` } }
           )
           if (resAttendance.ok) {

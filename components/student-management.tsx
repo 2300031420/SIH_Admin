@@ -45,11 +45,11 @@ export function StudentManagement() {
   })
 
   const token = typeof window !== "undefined" ? localStorage.getItem("token") : null
-
+const API_URL = process.env.NEXT_PUBLIC_API_URL;
   // Fetch students
   const fetchStudents = async () => {
     try {
-      const res = await fetch("http://localhost:5000/api/auth/students", {
+      const res = await fetch(`${API_URL}/api/auth/students`, {
         headers: { Authorization: `Bearer ${token}` }
       })
       const data = await res.json()
@@ -62,7 +62,7 @@ export function StudentManagement() {
 
   const fetchTeacherProfile = async () => {
   try {
-    const res = await fetch("http://localhost:5000/api/auth/me", {
+    const res = await fetch(`${API_URL}/api/auth/me`, {
       headers: { Authorization: `Bearer ${token}` }
     })
     if (!res.ok) throw new Error("Failed to fetch teacher profile")
@@ -108,7 +108,7 @@ export function StudentManagement() {
       ...formData,
       teacherSchoolId // this comes from state: const [teacherSchoolId, setTeacherSchoolId] = useState("")
     }
-      const res = await fetch("http://localhost:5000/api/auth/register", {
+      const res = await fetch(`${API_URL}/api/auth/register`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -139,7 +139,7 @@ export function StudentManagement() {
     if (!editingStudent) return
 
     try {
-      const res = await fetch(`http://localhost:5000/api/auth/students/${editingStudent._id}`, {
+      const res = await fetch(`${API_URL}/api/auth/students/${editingStudent._id}`, {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",
@@ -162,7 +162,7 @@ export function StudentManagement() {
 
   const handleDeleteStudent = async (studentId: string) => {
     try {
-      const res = await fetch(`http://localhost:5000/api/auth/students/${studentId}`, {
+      const res = await fetch(`${API_URL}/api/auth/students/${studentId}`, {
         method: "DELETE",
         headers: { Authorization: `Bearer ${token}` }
       })
