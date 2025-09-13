@@ -19,7 +19,7 @@ export default function DashboardPage() {
        
 
         {/* Today's Attendance Summary - Modern Cards */}
-        <AttendanceSummary />
+        
 
         {/* Student List Section */}
         <div className="space-y-6">

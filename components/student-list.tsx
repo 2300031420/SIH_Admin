@@ -1,36 +1,94 @@
 "use client"
 
+import { useEffect, useState } from "react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Input } from "@/components/ui/input"
 import { Search, UserCheck, UserX } from "lucide-react"
-import { useState } from "react"
 import { useLanguage } from "@/hooks/use-language"
 import { Button } from "@/components/ui/button"
 
-// Mock student data - in real app this would come from API
-const studentsData = [
-  { id: 1, name: "Aarav Sharma", rollNumber: "001", status: "present", time: "08:15 AM" },
-  { id: 2, name: "Priya Patel", rollNumber: "002", status: "present", time: "08:20 AM" },
-  { id: 3, name: "Rahul Kumar", rollNumber: "003", status: "absent", time: "-" },
-  { id: 4, name: "Sneha Singh", rollNumber: "004", status: "present", time: "08:25 AM" },
-  { id: 5, name: "Arjun Gupta", rollNumber: "005", status: "present", time: "08:18 AM" },
-  { id: 6, name: "Kavya Reddy", rollNumber: "006", status: "absent", time: "-" },
-  { id: 7, name: "Vikram Joshi", rollNumber: "007", status: "present", time: "08:30 AM" },
-  { id: 8, name: "Ananya Mehta", rollNumber: "008", status: "present", time: "08:12 AM" },
-]
+interface Student {
+  _id: string
+  name: string
+  username: string
+  rollNumber?: string
+  status?: "present" | "absent"
+  time?: string
+}
 
 export function StudentList() {
+  const [students, setStudents] = useState<Student[]>([])
+  const [loading, setLoading] = useState(true)
   const [searchTerm, setSearchTerm] = useState("")
   const [statusFilter, setStatusFilter] = useState<"all" | "present" | "absent">("all")
   const { t } = useLanguage()
 
-  const filteredStudents = studentsData.filter((student) => {
+  useEffect(() => {
+    const fetchStudentsAndAttendance = async () => {
+      try {
+        const token = localStorage.getItem("token")
+
+        // 1️⃣ Fetch teacher profile
+        const resTeacher = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/auth/me`, {
+          headers: { Authorization: `Bearer ${token}` },
+        })
+        if (!resTeacher.ok) throw new Error("Failed to fetch teacher profile")
+        const teacher = await resTeacher.json()
+        const teacherSchoolId = teacher.teacherSchoolId
+
+        // 2️⃣ Fetch students assigned to this teacher
+        const resStudents = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/auth/students`, {
+          headers: { Authorization: `Bearer ${token}` },
+        })
+        if (!resStudents.ok) throw new Error("Failed to fetch students")
+        const studentsData: Student[] = await resStudents.json()
+
+        // 3️⃣ Fetch today’s attendance for this teacher
+        let attendanceData: any[] = []
+        if (teacherSchoolId) {
+          const resAttendance = await fetch(
+            `${process.env.NEXT_PUBLIC_API_URL}/api/attendance/today/${teacherSchoolId}`,
+            { headers: { Authorization: `Bearer ${token}` } }
+          )
+          if (resAttendance.ok) {
+            attendanceData = await resAttendance.json()
+          }
+        }
+
+        // 4️⃣ Map attendance to students
+        const studentsWithStatus = studentsData.map(student => {
+          const attendance = attendanceData.find(a => a.student._id === student._id)
+          return {
+            ...student,
+            status: attendance ? attendance.status.toLowerCase() : "absent",
+            time: attendance?.createdAt ? new Date(attendance.createdAt).toLocaleTimeString() : "-"
+          }
+        })
+
+        setStudents(studentsWithStatus)
+      } catch (err) {
+        console.error("Error fetching students:", err)
+      } finally {
+        setLoading(false)
+      }
+    }
+
+    fetchStudentsAndAttendance()
+  }, [])
+
+  // Filter students based on search and status
+  const filteredStudents = students.filter((student) => {
     const matchesSearch =
-      student.name.toLowerCase().includes(searchTerm.toLowerCase()) || student.rollNumber.includes(searchTerm)
+      student.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      student.username.toLowerCase().includes(searchTerm.toLowerCase())
     const matchesStatus = statusFilter === "all" || student.status === statusFilter
     return matchesSearch && matchesStatus
   })
+
+  if (loading) {
+    return <p className="text-center text-gray-500">{t("loading_students")}</p>
+  }
 
   return (
     <Card className="border-border/50 shadow-lg glass-effect">
@@ -80,7 +138,7 @@ export function StudentList() {
         <div className="space-y-3 max-h-96 overflow-y-auto">
           {filteredStudents.map((student, index) => (
             <div
-              key={student.id}
+              key={student._id}
               className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 p-4 rounded-xl border border-border/50 hover:bg-accent/5 transition-all duration-200 hover:shadow-md animate-fade-in"
               style={{ animationDelay: `${index * 50}ms` }}
             >
@@ -101,7 +159,7 @@ export function StudentList() {
                 <div>
                   <p className="font-semibold text-foreground text-lg">{student.name}</p>
                   <p className="text-sm text-muted-foreground">
-                    {t("roll_number")}: {student.rollNumber}
+                    {t("roll_number")}: {student.rollNumber || student.username}
                   </p>
                 </div>
               </div>
@@ -109,7 +167,7 @@ export function StudentList() {
               <div className="flex items-center sm:space-x-4 w-full sm:w-auto justify-between sm:justify-end">
                 <div className="text-left sm:text-right">
                   <p className="text-sm font-medium text-foreground">{t("time")}</p>
-                  <p className="text-sm text-muted-foreground">{student.time}</p>
+                  <p className="text-sm text-muted-foreground">{student.time || "-"}</p>
                 </div>
                 <Badge
                   variant={student.status === "present" ? "default" : "destructive"}
@@ -128,7 +186,7 @@ export function StudentList() {
           {filteredStudents.length === 0 && (
             <div className="text-center py-8 text-muted-foreground">
               <Search className="w-12 h-12 mx-auto mb-4 opacity-50" />
-              <p>No students found matching your search.</p>
+              <p>{t("no_students_found")}</p>
             </div>
           )}
         </div>

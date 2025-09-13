@@ -1,86 +1,121 @@
 "use client"
 
+import { useEffect, useState } from "react"
 import { Card, CardContent } from "@/components/ui/card"
 import { Users, UserCheck, UserX, TrendingUp } from "lucide-react"
 import { useLanguage } from "@/hooks/use-language"
 
-const attendanceData = {
-  totalStudents: 10,
-  presentCount: 9,
-  absentCount: 1,
-  lastUpdated: "10:30 AM",
+interface AttendanceSummaryData {
+  totalStudents: number
+  presentCount: number
+  absentCount: number
+  lastUpdated?: string
 }
 
-export function AttendanceSummary() {
+interface AttendanceSummaryProps {
+  schoolId: string
+}
+
+interface AttendanceApiResponse {
+  _id: "Present" | "Absent" | string
+  count: number
+}
+
+export function AttendanceSummary({ schoolId }: AttendanceSummaryProps) {
   const { t } = useLanguage()
-  const attendancePercentage = Math.round((attendanceData.presentCount / attendanceData.totalStudents) * 100)
+  const [attendanceData, setAttendanceData] = useState<AttendanceSummaryData>({
+    totalStudents: 0,
+    presentCount: 0,
+    absentCount: 0,
+    lastUpdated: "",
+  })
+  const [loading, setLoading] = useState(true)
+
+  useEffect(() => {
+    const fetchAttendanceSummary = async () => {
+      try {
+        const res = await fetch(
+          `${process.env.NEXT_PUBLIC_API_URL}/api/attendance/summary/${schoolId}`,
+          { credentials: "include" }
+        )
+        const data: AttendanceApiResponse[] = await res.json()
+
+        const present = data.find(d => d._id === "Present")?.count || 0
+        const absent = data.find(d => d._id === "Absent")?.count || 0
+        const total = present + absent
+
+        setAttendanceData({
+          totalStudents: total,
+          presentCount: present,
+          absentCount: absent,
+          lastUpdated: new Date().toLocaleTimeString(),
+        })
+      } catch (err) {
+        console.error("Error fetching attendance summary:", err)
+      } finally {
+        setLoading(false)
+      }
+    }
+
+    fetchAttendanceSummary()
+  }, [schoolId])
+
+  const attendancePercentage = attendanceData.totalStudents
+    ? Math.round((attendanceData.presentCount / attendanceData.totalStudents) * 100)
+    : 0
+
+  if (loading) return <p className="text-center text-gray-500">{t("loading_attendance") || "Loading..."}</p>
 
   return (
     <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-      <Card
-        className="bg-white/80 backdrop-blur-sm border-0 shadow-lg hover:shadow-2xl hover:scale-105 transition-all duration-300 animate-fade-in-up"
-        style={{ animationDelay: "0ms" }}
-      >
-        <CardContent className="p-6">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm font-medium text-gray-600 mb-1">{t("total_students") || "Total Students"}</p>
-              <p className="text-3xl font-bold text-gray-900 animate-count-up">{attendanceData.totalStudents}</p>
-            </div>
-            <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-blue-600 rounded-2xl flex items-center justify-center shadow-lg hover:shadow-blue-500/25 transition-all duration-300">
-              <Users className="h-6 w-6 text-white" />
-            </div>
+      {/* Total Students */}
+      <Card className="bg-white/80 backdrop-blur-sm border-0 shadow-lg">
+        <CardContent className="p-6 flex justify-between items-center">
+          <div>
+            <p className="text-sm text-gray-600">{t("total_students") || "Total Students"}</p>
+            <p className="text-3xl font-bold">{attendanceData.totalStudents}</p>
+          </div>
+          <div className="w-12 h-12 bg-blue-500 rounded-2xl flex items-center justify-center">
+            <Users className="h-6 w-6 text-white" />
           </div>
         </CardContent>
       </Card>
 
-      <Card
-        className="bg-white/80 backdrop-blur-sm border-0 shadow-lg hover:shadow-2xl hover:scale-105 transition-all duration-300 animate-fade-in-up"
-        style={{ animationDelay: "100ms" }}
-      >
-        <CardContent className="p-6">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm font-medium text-gray-600 mb-1">{t("present") || "Present"}</p>
-              <p className="text-3xl font-bold text-gray-900 animate-count-up">{attendanceData.presentCount}</p>
-            </div>
-            <div className="w-12 h-12 bg-gradient-to-br from-green-500 to-green-600 rounded-2xl flex items-center justify-center shadow-lg hover:shadow-green-500/25 transition-all duration-300">
-              <UserCheck className="h-6 w-6 text-white" />
-            </div>
+      {/* Present */}
+      <Card className="bg-white/80 backdrop-blur-sm border-0 shadow-lg">
+        <CardContent className="p-6 flex justify-between items-center">
+          <div>
+            <p className="text-sm text-gray-600">{t("present") || "Present"}</p>
+            <p className="text-3xl font-bold">{attendanceData.presentCount}</p>
+          </div>
+          <div className="w-12 h-12 bg-green-500 rounded-2xl flex items-center justify-center">
+            <UserCheck className="h-6 w-6 text-white" />
           </div>
         </CardContent>
       </Card>
 
-      <Card
-        className="bg-white/80 backdrop-blur-sm border-0 shadow-lg hover:shadow-2xl hover:scale-105 transition-all duration-300 animate-fade-in-up"
-        style={{ animationDelay: "200ms" }}
-      >
-        <CardContent className="p-6">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm font-medium text-gray-600 mb-1">{t("absent") || "Absent"}</p>
-              <p className="text-3xl font-bold text-gray-900 animate-count-up">{attendanceData.absentCount}</p>
-            </div>
-            <div className="w-12 h-12 bg-gradient-to-br from-red-500 to-red-600 rounded-2xl flex items-center justify-center shadow-lg hover:shadow-red-500/25 transition-all duration-300">
-              <UserX className="h-6 w-6 text-white" />
-            </div>
+      {/* Absent */}
+      <Card className="bg-white/80 backdrop-blur-sm border-0 shadow-lg">
+        <CardContent className="p-6 flex justify-between items-center">
+          <div>
+            <p className="text-sm text-gray-600">{t("absent") || "Absent"}</p>
+            <p className="text-3xl font-bold">{attendanceData.absentCount}</p>
+          </div>
+          <div className="w-12 h-12 bg-red-500 rounded-2xl flex items-center justify-center">
+            <UserX className="h-6 w-6 text-white" />
           </div>
         </CardContent>
       </Card>
 
-      <Card
-        className="bg-white/80 backdrop-blur-sm border-0 shadow-lg hover:shadow-2xl hover:scale-105 transition-all duration-300 animate-fade-in-up"
-        style={{ animationDelay: "300ms" }}
-      >
-        <CardContent className="p-6">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm font-medium text-gray-600 mb-1">{t("attendance_rate") || "Attendance %"}</p>
-              <p className="text-3xl font-bold text-gray-900 animate-count-up">{attendancePercentage}%</p>
-            </div>
-            <div className="w-12 h-12 bg-gradient-to-br from-purple-500 to-purple-600 rounded-2xl flex items-center justify-center shadow-lg hover:shadow-purple-500/25 transition-all duration-300">
-              <TrendingUp className="h-6 w-6 text-white" />
-            </div>
+      {/* Attendance % */}
+      <Card className="bg-white/80 backdrop-blur-sm border-0 shadow-lg">
+        <CardContent className="p-6 flex justify-between items-center">
+          <div>
+            <p className="text-sm text-gray-600">{t("attendance_rate") || "Attendance %"}</p>
+            <p className="text-3xl font-bold">{attendancePercentage}%</p>
+          </div>
+          <div className="w-12 h-12 bg-purple-500 rounded-2xl flex items-center justify-center">
+            <TrendingUp className="h-6 w-6 text-white" />
           </div>
         </CardContent>
       </Card>
