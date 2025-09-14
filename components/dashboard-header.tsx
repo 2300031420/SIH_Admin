@@ -116,7 +116,7 @@ export function DashboardHeader() {
             <Link href="/notifications">
               <Button variant="ghost" size="sm" className="relative hover:bg-accent/10 transition-all duration-200">
                 <Bell className="w-4 h-4 mr-2" />
-                {t("notifications")}
+                {t("Post Assignments")}
                 {unreadNotifications > 0 && (
                   <Badge
                     variant="destructive"
